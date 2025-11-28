@@ -1,37 +1,42 @@
-// pages/api/chat.js
-import dbConnect from "@/lib/db";
+import db from "@/lib/db";
+import Site from "@/models/Site";
+import BotSettings from "@/models/BotSettings";
 import { generateWithYuki } from "@/lib/gemini";
 
 export default async function handler(req, res) {
-  await dbConnect();
+  if (req.method !== "POST") 
+    return res.status(200).json({ ok: false });
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Only POST allowed" });
-  }
+  await db();
 
-  const { message } = req.body || {};
+  const { message, siteId } = req.body;
+  if (!message) return res.json({ ok: false, error: "Empty message" });
+  if (!siteId) return res.json({ ok: false, error: "Missing siteId" });
 
-  if (!message || message.trim() === "") {
-    return res.status(400).json({ ok: false, error: "Message is required" });
-  }
+  const site = await Site.findOne({ siteId });
+  if (!site) return res.json({ ok: false, error: "Site not found" });
 
+  if (site.botOff)
+    return res.json({ ok: false, error: "Bot is disabled by admin" });
+
+  const settings = await BotSettings.findOne().lean();
+
+  const prompt = `
+You are ${settings.botName}.
+Owner: ${settings.ownerName}.
+Personality: ${settings.personality}.
+Gender: ${settings.gender}.
+
+User message: ${message}
+Respond naturally.
+`;
+
+  let reply = "Error";
   try {
-    // Basic panel prompt
-    const prompt = `
-You are Yuki, an AI assistant used inside a control panel for testing.
-Keep your reply short (1-2 lines), friendly, and clear.
-
-User: ${message}
-Yuki:`;
-
-    const reply = await generateWithYuki(prompt);
-
-    return res.status(200).json({ ok: true, reply });
-  } catch (e) {
-    console.error("chat.js error:", e);
-    return res.status(500).json({
-      ok: false,
-      error: "Failed to get response from Yuki",
-    });
+    reply = await generateWithYuki(prompt);
+  } catch {
+    reply = "Something went wrong.";
   }
+
+  return res.json({ ok: true, reply });
 }
