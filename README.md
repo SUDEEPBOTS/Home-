@@ -1,122 +1,238 @@
-# 🌙 YukiChat — AI Powered Telegram Bot Panel
+# 📌 SEZUKUU · HOME ADMIN PANEL  
+**Master Control System for All Client Telegram Bot Deployments**
 
-YukiChat ek fully–customizable AI Telegram bot panel hai jisme:
+This is the **Home (Admin) Version** of Sezukuu —  
+the central server that controls all client deployments.
 
-✔ Gemini multi–API key rotation  
-✔ Owner / Bot identity control  
-✔ Gender + Personality modes  
-✔ Group smart–reply system  
-✔ Conversation memory  
-✔ Typing animation  
-✔ Group logging  
-✔ Webhook setup button  
-✔ Clean Next.js + MongoDB architecture  
+From this admin panel you can:
+
+### ✔ Register new client websites  
+### ✔ Turn ANY client website ON/OFF remotely  
+### ✔ Turn client bots ON/OFF remotely  
+### ✔ Send broadcast popup messages to all clients  
+### ✔ Manage your Gemini API keys  
+### ✔ Edit global bot settings  
+### ✔ Monitor all client instances  
+### ✔ Handle the master AI brain (Yuki Engine)  
+
+All client versions depend on this server to:
+
+- Get AI replies  
+- Get personality / settings  
+- Get ON/OFF status  
+- Get broadcast popup  
+- Get disabled message  
+- Register themselves  
 
 ---
 
-## 📁 Folder Structure
+# 🚀 Features
+
+| Feature | Description |
+|--------|-------------|
+| 🔥 Global Admin Dashboard | Full control over all client deployments |
+| ⚙ Yuki Chat Engine | AI brain for all bots |
+| 🔑 Gemini Keys Manager | Auto failover, auto switch |
+| 🤖 Telegram Bot Settings | Owner Name, Bot Name, Gender, Personality |
+| 🔔 Broadcast System | Send popup to all clients |
+| 📡 Webhook Handler | Centralized Telegram routing |
+| 🧠 Memory System | Per-user conversation memory |
+| 🌐 Client Control | Website ON/OFF + Bot ON/OFF |
+| 📝 Client Registry | Track all deployed client sites |
+
+---
+
+# 🛠 Folder Structure
 
 ```
-YukiChat/
-│
-├── jsconfig.json
-├── next.config.js
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-├── README.md
+HOME/
 │
 ├── lib/
 │   ├── db.js
-│   └── gemini.js
+│   ├── gemini.js
 │
 ├── models/
 │   ├── ApiKey.js
+│   ├── Site.js           ← NEW
 │   ├── BotConfig.js
 │   ├── BotSettings.js
 │   ├── Group.js
-│   └── Memory.js
+│   ├── Memory.js
 │
 ├── pages/
-│   ├── _app.js
-│   ├── _document.js
-│   ├── index.js
+│   ├── index.js          ← ADMIN DASHBOARD UI
+│   │
 │   └── api/
 │       ├── chat.js
-│       ├── keys.js
+│       ├── register.js
+│       ├── config.js
+│       ├── toggle-site.js
+│       ├── toggle-bot.js
+│       ├── broadcast.js
+│       ├── sites.js
 │       ├── bot-config.js
 │       ├── bot-settings.js
 │       ├── groups.js
 │       └── telegram-webhook.js
 │
 ├── public/
-│   ├── favicon.svg
-│   ├── icon.svg
-│   └── logo.svg
-│
-└── styles/
-    └── globals.css
+├── styles/
 ```
 
 ---
 
-## ⚙️ Installation
+# ⚙️ Environment Variables (Required)
 
-### 1️⃣ Project Install
-
-```bash
-npm install
-```
-
-### 2️⃣ Environment Variables (Vercel ya local)
+Add these inside  
+**Vercel → Project Settings → Environment Variables**
 
 ```
-MONGODB_URI=your-mongodb-connection
+MONGO_URI=your_mongodb_connection_string
 ```
 
-Bas itna hi!
-
----
-
-## 🚀 Development Start
-
-```bash
-npm run dev
-```
-
-Default URL:
+Optional (if you want admin bot on home server):
 
 ```
-http://localhost:3000
+TELEGRAM_BOT_TOKEN=
+```
+
+Client versions must use:
+
+```
+HOME_BASE_URL=https://your-admin-domain.vercel.app
 ```
 
 ---
 
-## 🌐 Deployment (Vercel)
+# 🚀 Deploy to Vercel (One-Click)
 
-1. Project import karo  
-2. Environment variable add karo:
+If this project is uploaded to GitHub,  
+use this button to deploy instantly:
 
 ```
-MONGODB_URI=xxx
+https://vercel.com/new/clone?repository-url=https://github.com/YOUR-USERNAME/YOUR-REPO
 ```
 
-3. Deploy → Panel ready
+Replace:
+- `YOUR-USERNAME`
+- `YOUR-REPO`
 
 ---
 
-## 🤖 Telegram Bot Setup
+# 🔌 Home APIs — Full List
 
-1. BotFather se token lo  
-2. Panel me **Bot Token** paste karo  
-3. **Save Token**  
-4. **Set Webhook** button press  
+## 1. `POST /api/register`
+Registers a new client site  
+Returns:
+```json
+{ "ok": true, "siteId": "xxxx-xxxx" }
+```
 
-Webhook URL:
+## 2. `GET /api/config?siteId=xxxx`
+Client websites poll this every few seconds  
+Returns:
+```json
+{
+  "siteOff": false,
+  "botOff": false,
+  "message": "",
+  "broadcast": ""
+}
+```
+
+## 3. `POST /api/chat`
+Master AI brain (Yuki engine)
+
+## 4. `POST /api/toggle-site`
+Turn a client site ON/OFF
+
+## 5. `POST /api/toggle-bot`
+Turn a client bot ON/OFF
+
+## 6. `POST /api/broadcast`
+Send popup message to all clients
+
+## 7. `GET /api/sites`
+List all connected client deployments
+
+---
+
+# 🤖 Client Version Connection Guide
+
+Every client project must:
+
+### ✔ Ask user for site name (first time only)  
+### ✔ Register itself using:
 
 ```
-https://your-domain/api/telegram-webhook
+POST https://your-admin-domain/api/register
 ```
+
+It receives:
+
+```
+{ "siteId": "xxxx-xxxx" }
+```
+
+### ✔ Poll config from home:
+
+```
+GET https://your-admin-domain/api/config?siteId=SITENAME
+```
+
+### ✔ Use HOME chat API:
+
+```
+POST https://your-admin-domain/api/chat
+```
+
+### ✔ Telegram webhook format:
+
+```
+https://client-site.com/api/telegram-webhook?token=BOT_TOKEN&siteId=SITENAME
+```
+
+---
+
+# 🧠 Flowchart
+
+```
+Client User → Client Bot → Client Webhook
+       ↓             ↑
+       ↓   FORWARD CHAT REQUEST
+       ↓             |
+  HOME /api/chat  ←  |
+       ↓
+ Yuki AI Engine (Gemini)
+       ↓
+ Returns reply to Client bot
+       ↓
+ Client Telegram User
+```
+
+Admin controls everything:
+
+```
+Admin Panel → Toggle Website
+Admin Panel → Toggle Bot
+Admin Panel → Broadcast
+Admin Panel → View Sites
+```
+
+---
+
+# 💡 Support / Notes
+- This Home version must always stay online  
+- Client versions depend on this server  
+- If Home server is down → all client bots go down  
+- Keep Gemini keys active  
+- Keep MongoDB connection stable
+
+---
+
+# 🎉 DONE  
+Your Home Admin Panel is now fully ready.  
+Control all client deployments from one place!```
 
 ---
 
