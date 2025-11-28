@@ -6,7 +6,7 @@ export default function Home() {
 const [sites, setSites] = useState([]);
 const [broadcastMsg, setBroadcastMsg] = useState("");
 const [adminRefresh, setAdminRefresh] = useState(false);
-// New state for broadcast status
+// State for broadcast status
 const [isBroadcastEnabled, setIsBroadcastEnabled] = useState(true);
 
 // ---------------- ORIGINAL STATES ----------------
@@ -47,7 +47,7 @@ const dataBot = await resBot.json();
       setBotToken(dataBot.config.telegramBotToken);
       setBotTokenSaved(true);
     }
-    // Load broadcast status (assuming you have an API endpoint for this)
+    // Load broadcast status (Requires backend API: /api/broadcast-status)
     const resBroadcast = await fetch("/api/broadcast-status");
     const dataBroadcast = await resBroadcast.json();
     if (dataBroadcast.ok) {
@@ -101,7 +101,7 @@ setAdminRefresh(!adminRefresh);
 
 };
 
-// NEW FUNCTION: REMOVE CLIENT SITE
+// NEW FUNCTION: REMOVE CLIENT SITE (Requires backend API: /api/remove-site)
 const removeSite = async (siteId) => {
 if (
     !confirm(
@@ -111,7 +111,7 @@ if (
     return;
 
   await fetch("/api/remove-site", {
-    method: "POST", // Assuming a POST endpoint for deletion
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ siteId }),
   });
@@ -132,10 +132,10 @@ alert("Broadcast sent successfully!");
 setBroadcastMsg("");
 };
 
-// NEW FUNCTION: TOGGLE BROADCAST STATUS
+// NEW FUNCTION: TOGGLE BROADCAST STATUS (Requires backend API: /api/toggle-broadcast)
 const toggleBroadcast = async () => {
   const newValue = !isBroadcastEnabled;
-  await fetch("/api/toggle-broadcast", { // Assuming this is your new endpoint
+  await fetch("/api/toggle-broadcast", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ enabled: newValue }),
@@ -145,7 +145,7 @@ const toggleBroadcast = async () => {
 };
 
 
-// ---------------- ORIGINAL FUNCTIONS (No changes needed here for the request) ----------------
+// ---------------- ORIGINAL FUNCTIONS ----------------
 const addKey = async () => {
 if (!apiKey.trim()) return;
 const res = await fetch("/api/keys", {
@@ -268,7 +268,7 @@ return (
           >
             Send Broadcast
           </button>
-          {/* NEW BUTTON: Toggle Broadcast Off */}
+          {/* Toggle Broadcast Off/On */}
           <button
             onClick={toggleBroadcast}
             className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -328,7 +328,7 @@ return (
                 {s.botOff ? "Enable Bot" : "Disable Bot"}
               </button>
 
-              {/* NEW BUTTON: REMOVE SITE */}
+              {/* REMOVE SITE */}
               <button
                 onClick={() => removeSite(s.siteId)}
                 className="px-3 py-1 rounded-full text-sm font-medium bg-transparent border border-red-500 text-red-400 hover:bg-red-500 hover:text-white transition hover:scale-[1.03]"
@@ -346,8 +346,7 @@ return (
       >
         Refresh List 🔄
       </button>
-      {/* ADD NEW CLIENT WEBSITE button ko aapko ek alag modal/form mein banana hoga, jo yahan pe 'sites' state ko update karega. */}
-      {/* For now, just a placeholder for Connect/Add Client */}
+      {/* Placeholder for Add New Client */}
       <button
         onClick={() => alert('New Client form/modal will open here!')}
         className="mt-4 ml-3 bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg transition font-medium"
@@ -578,6 +577,53 @@ return (
             <option value="flirty">Flirty</option>
             <option value="professional">Professional</option>
           </select>
-        </div>
+                </div>
 
-    
+        <input
+          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-purple-500 transition"
+          placeholder="Group Link"
+          value={settings.groupLink}
+          onChange={(e) =>
+            setSettings((s) => ({ ...s, groupLink: e.target.value }))
+          }
+        />
+
+        <button
+          onClick={saveSettings}
+          disabled={settingsSaving}
+          className="w-full bg-gradient-to-r from-sky-500 to-fuchsia-500 hover:from-sky-600 hover:to-fuchsia-600 rounded-lg px-4 py-2 font-medium transition disabled:opacity-50 disabled:cursor-wait"
+        >
+          {settingsSaving ? "Saving…" : "Save Settings"}
+        </button>
+      </section>
+
+      {/* GROUP LIST */}
+      <section className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg flex-grow">
+        <h2 className="text-lg font-semibold text-orange-400 mb-3">
+          Logged Groups
+        </h2>
+
+        <div className="space-y-2 max-h-52 overflow-y-auto pr-2">
+          {groups.length === 0 && (
+            <p className="text-slate-500">No group activity logged yet. 😴</p>
+          )}
+
+          {groups.map((g) => (
+            <div
+              key={g._id}
+              className="bg-slate-800 p-3 rounded-lg border border-slate-700 hover:border-orange-500 transition"
+            >
+              <p className="font-bold text-sm">
+                {g.title || "Untitled Group"}
+              </p>
+              <p className="text-xs text-slate-400">**ID**: {g.chatId}</p>
+              <p className="text-xs text-slate-500">{g.type}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+);
+}
